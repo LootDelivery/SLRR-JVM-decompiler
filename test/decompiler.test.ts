@@ -8,7 +8,11 @@ const u16 = (n: number): number[] => [n & 255, (n >>> 8) & 255];
 const u32 = (n: number): number[] => [n & 255, (n >>> 8) & 255, (n >>> 16) & 255, (n >>> 24) & 255];
 const ascii = (s: string): number[] => [...Buffer.from(s, 'latin1')];
 const chunk = (tag: string, bytes: number[]): number[] => [...ascii(tag), ...u32(bytes.length), ...bytes];
-const string = (value: string): number[] => [...u32(0), ...u32(value.length), ...ascii(value), 0];
+const utf8 = (value: string): number[] => [...Buffer.from(value, 'utf8')];
+const string = (value: string): number[] => {
+  const bytes = utf8(value);
+  return [...u32(0), ...u32(bytes.length), ...bytes, 0];
+};
 const classRef = (index: number): number[] => [...u32(4), ...u32(index)];
 const node = (op: number, immediate?: number): number[] => [op, ...u16(10), ...((OP_FLAGS[op] >>> 12) ? u32(immediate ?? 0) : [])];
 const tree = (...nodes: number[][]): number[] => [...u32(nodes.length), ...nodes.flat()];
@@ -17,7 +21,7 @@ function sample(): Uint8Array {
   const pool = [
     string('example.Sample'), classRef(0), string('java.lang.Object'), classRef(2),
     string('value'), string('I'), string('run'), string('()I'), string('branch'),
-    string('TUFA inside the pool is not a class boundary'),
+    string('TUFA inside the pool is not a class boundary'), string('Гонка чемпионов'),
   ];
   const cons = [...u32(pool.length), ...pool.flat()];
   const fild = [...u32(0), ...u32(1), ...u32(1), ...u32(4), ...u32(5), ...u32(0)];
@@ -44,6 +48,7 @@ test('TUFA parser respects chunk boundaries and decodes references', () => {
   assert.equal(classes[0].superName, 'java.lang.Object');
   assert.equal(classes[0].trees.length, 3);
   assert.equal(classes[0].utf8(9), 'TUFA inside the pool is not a class boundary');
+  assert.equal(classes[0].utf8(10), 'Гонка чемпионов');
 });
 
 test('bad jump targets are rejected during lowering', () => {

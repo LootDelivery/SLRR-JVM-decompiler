@@ -40,7 +40,7 @@ console.log(formatIr(ir));
 console.log(decompileClass(cls).source);
 ```
 
-`parseTufa` accepts a `Uint8Array` and returns every class blob in the file. `lowerTree` exposes the operation list and control-flow blocks to other tooling. The package does not require a game installation for parsing or unit tests.
+`parseTufa` accepts a `Uint8Array` and returns every class blob in the file. String constants in the TUFA `CONS` pool are decoded as UTF-8; invalid byte sequences are rejected rather than silently misinterpreted. `lowerTree` exposes the operation list and control-flow blocks to other tooling. The package does not require a game installation for parsing or unit tests.
 
 See [examples](examples/README.md) for a TUFA `.class` file beside its decompiled `.java` and `.ir`, runnable API scripts, CLI usage and a full-installation scan.
 
