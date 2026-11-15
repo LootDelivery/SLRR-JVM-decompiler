@@ -72,7 +72,8 @@ function parseConstants(bytes: Uint8Array): Constant[] {
     switch (r.u32()) {
       case 0: {
         const len = r.u32();
-        const text = new TextDecoder('latin1').decode(r.take(len));
+        // Kind-0 CONS entries are UTF-8 strings; reject malformed byte sequences instead of mojibaking them.
+        const text = new TextDecoder('utf-8', { fatal: true }).decode(r.take(len));
         if (r.u8() !== 0) throw new Error(`CONS[${i}]: missing NUL`);
         values.push({ kind: 'utf8', text }); break;
       }
